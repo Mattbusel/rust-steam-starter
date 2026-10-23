@@ -1,0 +1,14 @@
+// Linux depot: the binary plus libsteam_api.so beside it. The binary finds
+// the library through the $ORIGIN rpath set in .cargo/config.toml.
+"DepotBuild"
+{
+	"DepotID" "${STEAM_DEPOT_LINUX}"
+	"ContentRoot" "../../dist/linux/"
+	"FileMapping"
+	{
+		"LocalPath" "*"
+		"DepotPath" "."
+		"recursive" "1"
+	}
+	"FileExclusion" "steam_appid.txt"
+}

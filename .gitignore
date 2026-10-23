@@ -1,0 +1,13 @@
+/target
+/dist
+/steam/build
+/steam/output
+/steam/store
+/steam/achievements/out
+/steam/chunks
+__pycache__/
+*.pdb
+# Never commit SteamCMD login data.
+config.vdf
+ssfn*
+/steam/.env

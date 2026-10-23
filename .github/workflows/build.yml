@@ -1,0 +1,66 @@
+name: build
+
+on:
+  push:
+  pull_request:
+  workflow_call:
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_TARGET_DIR: target
+  GAME_BIN: mygame
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: windows
+            os: windows-latest
+            exe: mygame.exe
+            steamlib: steam_api64.dll
+          # 22.04, not latest: an older glibc runs on more players' Linux
+          # installs and inside the Steam Linux Runtime.
+          - name: linux
+            os: ubuntu-22.04
+            exe: mygame
+            steamlib: libsteam_api.so
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Linux system libraries (X11, OpenGL)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libx11-dev libxi-dev libgl1-mesa-dev
+      - name: Plain build (no Steam, no DLL)
+        run: cargo build --release
+      - name: Tests
+        run: cargo test --release
+      - name: Steam build
+        run: cargo build --release --features steam
+      - name: Package
+        run: |
+          out=dist/${{ matrix.name }}
+          mkdir -p "$out"
+          cp "target/release/${{ matrix.exe }}" "$out/"
+          # steamworks-sys copies the Steam redistributable into its build
+          # output; the game needs it next to the executable.
+          lib=$(find target/release/build -name '${{ matrix.steamlib }}' | head -n 1)
+          test -n "$lib" || { echo "${{ matrix.steamlib }} not found"; exit 1; }
+          cp "$lib" "$out/"
+          ls -la "$out"
+      - name: Check the Linux binary finds libsteam_api.so beside it
+        if: runner.os == 'Linux'
+        run: readelf -d dist/linux/${{ matrix.exe }} | grep -E 'RPATH|RUNPATH' | grep -F '$ORIGIN'
+      - uses: actions/upload-artifact@v7
+        with:
+          name: steam-${{ matrix.name }}
+          path: dist/${{ matrix.name }}
+          if-no-files-found: error

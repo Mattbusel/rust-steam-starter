@@ -1,0 +1,18 @@
+// Windows depot. Steamworks creates your first depot as App ID + 1; add a
+// second one for Linux under SteamPipe > Depots and set its OS to Linux in
+// the depot settings so Windows players never download it.
+"DepotBuild"
+{
+	"DepotID" "${STEAM_DEPOT_WINDOWS}"
+	"ContentRoot" "../../dist/windows/"
+	"FileMapping"
+	{
+		"LocalPath" "*"
+		"DepotPath" "."
+		"recursive" "1"
+	}
+	// Never ship these. steam_appid.txt in a shipped build stops the
+	// "relaunch through Steam" check from working.
+	"FileExclusion" "*.pdb"
+	"FileExclusion" "steam_appid.txt"
+}

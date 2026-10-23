@@ -1,0 +1,5 @@
+# Linux: look for libsteam_api.so next to the executable, which is where the
+# depot puts it. Without this the shipped binary only finds the library if
+# the player has LD_LIBRARY_PATH set, which they will not.
+[target.x86_64-unknown-linux-gnu]
+rustflags = ["-C", "link-arg=-Wl,-rpath,$ORIGIN"]

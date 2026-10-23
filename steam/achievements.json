@@ -1,0 +1,6 @@
+[
+  {"id": "ACH_WIN_ONE_GAME", "name": "Winner", "glyph": "1", "color": "#ffcc4d"},
+  {"id": "ACH_WIN_100_GAMES", "name": "Champion", "glyph": "100", "color": "#4de6ff"},
+  {"id": "ACH_TRAVEL_FAR_ACCUM", "name": "Interstellar", "glyph": "AU", "color": "#5af078"},
+  {"id": "ACH_TRAVEL_FAR_SINGLE", "name": "Orbiter", "glyph": "O", "color": "#be78ff"}
+]

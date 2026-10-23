@@ -1,0 +1,22 @@
+// SteamPipe app build. steam/upload.py fills the ${...} values from
+// environment variables and writes the result to steam/build/.
+// Paths are relative to the rendered file (steam/build/).
+"AppBuild"
+{
+	"AppID" "${STEAM_APP_ID}"
+	"Desc" "${BUILD_DESC}"
+	// Beta branch to set live after upload. Leave empty to only upload.
+	// SteamCMD can NOT set the default branch live: do that in Steamworks
+	// (SteamPipe > Builds), which also asks for a Steam Mobile confirmation.
+	"SetLive" "${STEAM_BRANCH}"
+	"ContentRoot" "../../dist/"
+	"BuildOutput" "../output/"
+	"Depots"
+	{
+		"${STEAM_DEPOT_WINDOWS}" "depot_build_windows.vdf"
+		"${STEAM_DEPOT_LINUX}" "depot_build_linux.vdf"
+		// DLC content shipped under the base app (see depot_build_dlc.vdf).
+		// steam/upload.py switches this line on when STEAM_DEPOT_DLC is set.
+		// "${STEAM_DEPOT_DLC}" "depot_build_dlc.vdf"
+	}
+}

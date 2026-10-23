@@ -1,0 +1,14 @@
+// Rich presence strings. Upload in Steamworks: Community > Rich Presence
+// Localization, then PUBLISH (it stays developer-only until you do).
+// The game sets "steam_display" to one of these tokens and fills the
+// %placeholders% with keys of the same name (see Steam::presence).
+// Under the test app 480 these do not show, because 480 has Valve's own tokens.
+"lang"
+{
+	"Language"	"english"
+	"Tokens"
+	{
+		"#Menu"		"At the menu"
+		"#Playing"	"Collecting coins: %score% of 10"
+	}
+}

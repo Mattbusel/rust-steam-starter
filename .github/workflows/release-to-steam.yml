@@ -1,0 +1,81 @@
+name: release-to-steam
+
+# Manual: Actions > release-to-steam > Run workflow.
+# Builds both platforms, then uploads them to a Steam beta branch with SteamCMD.
+# Setting a build live on the DEFAULT branch stays a manual step in Steamworks.
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "Steam beta branch to set live (must already exist in Steamworks; not 'default'). Empty = upload only."
+        required: false
+        default: "beta"
+      description:
+        description: "Build description shown in Steamworks"
+        required: false
+        default: ""
+
+# Never run two uploads at once.
+concurrency:
+  group: steam-upload
+  cancel-in-progress: false
+
+jobs:
+  build:
+    uses: ./.github/workflows/build.yml
+
+  upload:
+    needs: build
+    runs-on: ubuntu-22.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
+        with:
+          name: steam-windows
+          path: dist/windows
+      - uses: actions/download-artifact@v8
+        with:
+          name: steam-linux
+          path: dist/linux
+      - name: Restore the executable bit on Linux
+        run: chmod +x dist/linux/mygame
+      - name: Install SteamCMD
+        run: |
+          sudo dpkg --add-architecture i386
+          sudo apt-get update
+          sudo apt-get install -y lib32gcc-s1
+          mkdir -p "$HOME/steamcmd"
+          curl -sSL https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz | tar -xz -C "$HOME/steamcmd"
+          # First run updates SteamCMD itself and creates its folders.
+          "$HOME/steamcmd/steamcmd.sh" +quit || true
+      - name: Restore the cached Steam login (config.vdf)
+        env:
+          STEAM_CONFIG_VDF: ${{ secrets.STEAM_CONFIG_VDF }}
+        run: |
+          test -n "$STEAM_CONFIG_VDF" || { echo "secret STEAM_CONFIG_VDF is not set (see README)"; exit 1; }
+          # SteamCMD reads config/config.vdf from its install folder; some
+          # versions use ~/Steam. Put it in both.
+          for d in "$HOME/steamcmd/config" "$HOME/Steam/config"; do
+            mkdir -p "$d"
+            echo "$STEAM_CONFIG_VDF" | base64 -d > "$d/config.vdf"
+            chmod 600 "$d/config.vdf"
+          done
+      - name: Upload to Steam
+        env:
+          STEAM_USERNAME: ${{ secrets.STEAM_USERNAME }}
+          STEAM_APP_ID: ${{ secrets.STEAM_APP_ID }}
+          STEAM_DEPOT_WINDOWS: ${{ secrets.STEAM_DEPOT_WINDOWS }}
+          STEAM_DEPOT_LINUX: ${{ secrets.STEAM_DEPOT_LINUX }}
+          STEAM_BRANCH: ${{ inputs.branch }}
+          BUILD_DESC: ${{ inputs.description || format('{0} {1}', github.ref_name, github.sha) }}
+        run: |
+          export STEAMCMD="$HOME/steamcmd/steamcmd.sh"
+          python3 steam/upload.py
+      - name: Show SteamPipe logs on failure
+        if: failure()
+        run: |
+          find "$HOME/steamcmd/logs" "$HOME/Steam/logs" -name '*.txt' 2>/dev/null | xargs -r tail -n 40
+      - name: Remove the login from the runner
+        if: always()
+        run: rm -f "$HOME/steamcmd/config/config.vdf" "$HOME/Steam/config/config.vdf"

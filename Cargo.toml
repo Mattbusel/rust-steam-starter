@@ -1,0 +1,25 @@
+[package]
+name = "mygame"
+version = "0.1.0"
+edition = "2021"
+description = "A minimal Rust game skeleton with an optional Steamworks integration."
+license = "MIT OR Apache-2.0"
+publish = false
+
+[dependencies]
+# Small windowing + 2D drawing crate. Swap for your engine of choice: only
+# src/main.rs touches it. Audio is off to keep ALSA out of the Linux build.
+macroquad = { version = "0.4", default-features = false }
+# Only compiled with `--features steam`. Without it the game has no Steam
+# code and no steam_api DLL, so the same source also ships to itch.io etc.
+steamworks = { version = "0.13", optional = true }
+
+[features]
+default = []
+steam = ["dep:steamworks"]
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 1
+strip = true

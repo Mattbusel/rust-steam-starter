@@ -1,0 +1,18 @@
+// A DLC depot. The DLC is its own app in Steamworks with its own App ID.
+// Add a depot for it under the BASE app (SteamPipe > Depots, "for DLC"),
+// then owning the DLC grants the depot and Steam installs it into the base
+// game's folder. It uploads in the same app build as the game depots.
+// O'BLOCK ships its Supporter Pack DLC (wallpapers, soundtrack, PDFs) this way.
+"DepotBuild"
+{
+	"DepotID" "${STEAM_DEPOT_DLC}"
+	"ContentRoot" "../../dist/dlc/"
+	"FileMapping"
+	{
+		// Everything under dist/dlc/Supporter Pack/ lands in
+		// <install dir>/Supporter Pack/ for DLC owners.
+		"LocalPath" "Supporter Pack/*"
+		"DepotPath" "Supporter Pack/"
+		"recursive" "1"
+	}
+}
